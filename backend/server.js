@@ -1,9 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 const app = express();
 const PORT = 8000;
+const JWT_SECRET = 'your-secret-key-change-in-production';
 
 // Middleware
 app.use(cors());
@@ -24,22 +27,15 @@ const authenticate = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  
-  // In our mock, the token is mock_token_{userId}
-  if (!token.startsWith('mock_token_')) {
+
+  try {
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
   }
-
-  const userId = token.replace('mock_token_', '');
-  const user = users.find(u => u.id === userId);
-  
-  if (!user && userId !== 'mock_user_id') {
-    return res.status(401).json({ message: 'User not found' });
-  }
-
-  // Attach user to request
-  req.user = user || { id: userId, name: 'Mock User' };
-  next();
 };
 
 // Root route to fix "Cannot GET /"
@@ -48,7 +44,7 @@ app.get('/', (req, res) => {
 });
 
 // Auth routes
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password, name } = req.body;
 
   // Check if user already exists
@@ -57,40 +53,68 @@ app.post('/api/auth/signup', (req, res) => {
     return res.status(400).json({ message: 'User already exists' });
   }
 
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   // Create new user
   const newUser = {
     id: uuidv4(),
     email,
     name,
+    password: hashedPassword,
     createdAt: generateTimestamp(),
     updatedAt: generateTimestamp()
   };
 
   users.push(newUser);
 
-  // Return user data with a mock token
+  // Create JWT token
+  const token = jwt.sign(
+    { id: newUser.id, email: newUser.email, name: newUser.name },
+    JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  // Return user data with token (don't send password)
+  const { password: _, ...userWithoutPassword } = newUser;
   res.json({
-    user: newUser,
-    token: `mock_token_${newUser.id}`
+    user: userWithoutPassword,
+    token
   });
 });
 
-app.post('/api/auth/signin', (req, res) => {
-  const { email, password } = req.body;
+app.post('/api/auth/signin', async (req, res) => {
+  const { email, password, name } = req.body;
 
   // Find user by email
-  const user = users.find(user => user.email === email);
+  let user = users.find(user => user.email === email);
+  
+  // If user doesn't exist, create a new one (auto-signup)
   if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    const hashedPassword = await bcrypt.hash(password || 'default', 10);
+    user = {
+      id: uuidv4(),
+      email,
+      name: name || email.split('@')[0],
+      password: hashedPassword,
+      createdAt: generateTimestamp(),
+      updatedAt: generateTimestamp()
+    };
+    users.push(user);
   }
 
-  // In a real app, you would verify the password here
-  // For this mock, we'll just accept any password
+  // Create JWT token (no password verification needed)
+  const token = jwt.sign(
+    { id: user.id, email: user.email, name: user.name },
+    JWT_SECRET,
+    { expiresIn: '24h' }
+  );
 
-  // Return user data with a mock token
+  // Return user data with token
+  const { password: _, ...userWithoutPassword } = user;
   res.json({
-    user: user,
-    token: `mock_token_${user.id}`
+    user: userWithoutPassword,
+    token
   });
 });
 

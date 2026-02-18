@@ -6,6 +6,14 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
 
+// API URL from environment or default
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Set global API URL for child components
+if (typeof window !== 'undefined') {
+  window.API_URL = API_URL;
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);

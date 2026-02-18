@@ -1,0 +1,68 @@
+# Default values for todo-chatbot
+
+# Global configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Frontend configuration
+frontend:
+  replicaCount: 2
+  image:
+    repository: todo-frontend
+    pullPolicy: Always
+    tag: "latest"
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 3000
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+  env:
+    REACT_APP_BACKEND_URL: "http://backend:8000"
+  probes:
+    readiness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+
+# Backend configuration
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    pullPolicy: Always
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  env:
+    DATABASE_URL: ""
+    SECRET_KEY: ""
+  probes:
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    liveness:
+      initialDelaySeconds: 20
+      periodSeconds: 10
+
+# Security configuration
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000

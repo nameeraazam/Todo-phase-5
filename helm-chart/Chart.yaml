@@ -1,0 +1,16 @@
+apiVersion: v2
+name: todo-chatbot
+version: 0.1.0
+appVersion: "1.0"
+description: Helm chart for Todo Chatbot (React frontend + Python backend API)
+type: application
+keywords:
+  - todo
+  - chatbot
+  - react
+  - python
+  - ai
+home: ""
+sources: []
+maintainers: []
+icon: ""

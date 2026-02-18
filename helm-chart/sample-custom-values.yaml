@@ -1,0 +1,25 @@
+frontend:
+  replicaCount: 3
+  image:
+    repository: my-registry/todo-frontend
+    tag: v1.0.0
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 700m
+      memory: 768Mi
+
+backend:
+  replicaCount: 2
+  image:
+    repository: my-registry/todo-backend
+    tag: v1.0.0
+  resources:
+    requests:
+      cpu: 300m
+      memory: 384Mi
+    limits:
+      cpu: 1.2
+      memory: 1.2Gi

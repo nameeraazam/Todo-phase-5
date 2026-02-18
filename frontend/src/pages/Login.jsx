@@ -4,7 +4,8 @@ import { LogIn, Mail, Lock, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_URL = 'http://localhost:8000';
+// Get API URL from window (set by App)
+const API_URL = window.API_URL || 'http://localhost:8000';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();

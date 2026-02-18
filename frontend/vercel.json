@@ -19,5 +19,8 @@
       "dest": "/index.html"
     }
   ],
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "env": {
+    "VITE_API_URL": "https://backend-dxob7s9vf-nameeras-projects-6a590e14.vercel.app"
+  }
 }

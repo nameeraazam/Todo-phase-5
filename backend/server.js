@@ -84,26 +84,24 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 
 app.post('/api/auth/signin', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, name } = req.body;
 
   // Find user by email
   let user = users.find(user => user.email === email);
   
   // If user doesn't exist, create a new one (auto-signup)
   if (!user) {
-    const hashedPassword = await bcrypt.hash(password || 'default', 10);
     user = {
       id: uuidv4(),
       email,
       name: name || email.split('@')[0],
-      password: hashedPassword,
       createdAt: generateTimestamp(),
       updatedAt: generateTimestamp()
     };
     users.push(user);
   }
 
-  // Create JWT token (no password verification needed)
+  // Create JWT token (Allow any password - we don't even check it anymore)
   const token = jwt.sign(
     { id: user.id, email: user.email, name: user.name },
     JWT_SECRET,

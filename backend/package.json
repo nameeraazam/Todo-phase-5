@@ -2,6 +2,9 @@
   "name": "todo-backend",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "description": "Mock backend API for the todo app",
   "main": "server.js",
   "scripts": {

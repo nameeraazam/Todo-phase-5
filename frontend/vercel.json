@@ -1,17 +1,9 @@
 {
   "version": 2,
   "name": "todo-frontend",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    }
-  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "outputDirectory": "dist",
   "env": {
     "VITE_API_URL": "https://backend-dxob7s9vf-nameeras-projects-6a590e14.vercel.app"
   }

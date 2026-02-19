@@ -45,51 +45,15 @@ app.get('/', (req, res) => {
 
 // Auth routes
 app.post('/api/auth/signup', async (req, res) => {
-  const { email, password, name } = req.body;
-
-  // Check if user already exists
-  const existingUser = users.find(user => user.email === email);
-  if (existingUser) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
-
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Create new user
-  const newUser = {
-    id: uuidv4(),
-    email,
-    name,
-    password: hashedPassword,
-    createdAt: generateTimestamp(),
-    updatedAt: generateTimestamp()
-  };
-
-  users.push(newUser);
-
-  // Create JWT token
-  const token = jwt.sign(
-    { id: newUser.id, email: newUser.email, name: newUser.name },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-
-  // Return user data with token (don't send password)
-  const { password: _, ...userWithoutPassword } = newUser;
-  res.json({
-    user: userWithoutPassword,
-    token
-  });
-});
-
-app.post('/api/auth/signin', async (req, res) => {
+  console.log('Signup request received:', req.body);
   const { email, name } = req.body;
 
-  // Find user by email
-  let user = users.find(user => user.email === email);
-  
-  // If user doesn't exist, create a new one (auto-signup)
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  // Auto-signup/login logic
+  let user = users.find(u => u.email === email);
   if (!user) {
     user = {
       id: uuidv4(),
@@ -101,19 +65,45 @@ app.post('/api/auth/signin', async (req, res) => {
     users.push(user);
   }
 
-  // Create JWT token (Allow any password - we don't even check it anymore)
   const token = jwt.sign(
     { id: user.id, email: user.email, name: user.name },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
 
-  // Return user data with token
-  const { password: _, ...userWithoutPassword } = user;
-  res.json({
-    user: userWithoutPassword,
-    token
-  });
+  res.json({ user, token });
+});
+
+app.post('/api/auth/signin', async (req, res) => {
+  console.log('Signin request received:', req.body);
+  const { email, name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  // Find user by email or create new one
+  let user = users.find(user => user.email === email);
+  
+  if (!user) {
+    user = {
+      id: uuidv4(),
+      email,
+      name: name || email.split('@')[0],
+      createdAt: generateTimestamp(),
+      updatedAt: generateTimestamp()
+    };
+    users.push(user);
+  }
+
+  // Create JWT token
+  const token = jwt.sign(
+    { id: user.id, email: user.email, name: user.name },
+    JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  res.json({ user, token });
 });
 
 app.post('/api/auth/signout', (req, res) => {

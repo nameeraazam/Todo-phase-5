@@ -18,6 +18,7 @@ export default function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log('Attempting login to:', `${API_URL}/api/auth/signin`);
 
     try {
       const response = await axios.post(`${API_URL}/api/auth/signin`, formData);
